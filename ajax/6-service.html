@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset='utf-8'>
+	<meta http-equiv='X-UA-Compatible' content='IE=edge'>
+	<title>Service Pattern</title>
+	<meta name='viewport' content='width=device-width, initial-scale=1'>
+	
+</head>
+<body>
+	<canvas id="container"></canvas>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+	<script type="module">
+		import {chart, mapData} from "./chart.js";
+	
+		class Service {
+			constructor(executor) {
+				if (executor) {
+					this.executor = executor;
+				}
+			}
+			get(params) {
+				params.method = 'GET';
+       			return this.request(params);
+			}
+
+			request(params) {
+				if (!this.executor) {
+					throw 'Service executor not provided';
+				}
+
+				var self = this;
+				return new Promise(function (resolve, reject) {
+					self.executor(params, resolve, reject);
+				});
+			}
+		}
+
+
+		// Handle response
+		function handleResponse(data) {
+			chart(document.getElementById('container'), [mapData(data)]);
+		}
+	
+		var npmStatService = new Service(function(params, resolve, reject) {
+			var xhr = new XMLHttpRequest(); 
+			xhr.onload = (event) => {
+				var xhr = event.target;
+				if (xhr.status == 404) {reject('Not found');return;}
+				var records = JSON.parse(xhr.response);
+				resolve(records);
+			};
+			xhr.onerror = (event) => reject('Error in request');
+	
+			xhr.open(params.method, `https://api.npmjs.org/downloads/range/${params.rangeFrom}:${params.rangeUntil}/${params.package}`); 
+			xhr.send();
+		});
+
+		npmStatService.get({rangeFrom:'2018-01-01', rangeUntil: '2019-01-01', package: 'react'})
+			.then(handleResponse)
+			.then(console.table)
+			.catch(console.error)
+	</script>
+</body>
+</html>

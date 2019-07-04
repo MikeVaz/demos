@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset='utf-8'>
+	<meta http-equiv='X-UA-Compatible' content='IE=edge'>
+	<title>Fetch</title>
+	<meta name='viewport' content='width=device-width, initial-scale=1'>
+
+</head>
+
+<body>
+	<canvas id="container"></canvas>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+	
+	<script type="module">
+		import {chart, mapData} from "./chart.js";
+
+		// Handle response
+		function handleResponse(response) {
+			if (response.status >= 200 && response.status < 300) {
+				return response.json() || response.text();
+			} else {
+				var error = new Error(response.statusText);
+				error.response = response;
+				throw error;
+			}
+		}
+
+
+		function request(params) {
+			var fetchParams = {method: 'GET'};
+			var url = `https://api.npmjs.org/downloads/range/${params.rangeFrom}:${params.rangeUntil}/${params.package}`;
+			return fetch(url, fetchParams);
+		}
+
+		request({ rangeFrom: '2018-01-01', rangeUntil: '2019-01-01', package: 'react' })
+			.then(handleResponse)
+			.then(function handleResponse(data) {
+				chart(document.getElementById('container'), [mapData(data)]);
+			})
+			.catch(console.error)
+
+	</script>
+</body>
+
+</html>

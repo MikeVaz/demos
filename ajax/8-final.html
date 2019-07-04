@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset='utf-8'>
+	<meta http-equiv='X-UA-Compatible' content='IE=edge'>
+	<title>Final solution</title>
+	<meta name='viewport' content='width=device-width, initial-scale=1'>
+
+</head>
+
+<body>
+	<canvas id="container"></canvas>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+	<script type="module">
+		import NPMStatService from './service.js';
+		import {chart, mapData} from './chart.js';
+
+		var npmStats = new NPMStatService({ rangeFrom: '2018-01-01', rangeUntil: '2019-01-01', package: 'react' });
+
+		Promise.all([
+			npmStats.request({package: 'react'}).then(npmStats.handleResponse).then(mapData),
+			npmStats.request({package: '@angular/core'}).then(npmStats.handleResponse).then(mapData),
+			npmStats.request({package: 'jquery'}).then(npmStats.handleResponse).then(mapData)
+		]).then(data => {
+			chart(document.getElementById('container'), data, 'line', 'NPM Stats');
+		}).catch(error => {
+			console.error(error);
+		});
+
+	</script>
+</body>
+
+</html>

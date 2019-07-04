@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset='utf-8'>
+	<meta http-equiv='X-UA-Compatible' content='IE=edge'>
+	<title>AngularJS</title>
+	<meta name='viewport' content='width=device-width, initial-scale=1'>
+	
+</head>
+<body>
+	<canvas id="container"></canvas>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.8/angular.min.js"></script>
+	<script>
+	
+		function mapData(data) {
+			return {
+				label: data.package,
+				borderColor: "rgb(192, 0, 0)",
+				backgroundColor: "rgba(192, 0, 0, 0.5)",
+				data: data.downloads.map((record) => {
+					return {x: record.day, y: record.downloads}
+				})
+			};
+		}
+
+		function chart(container, data) {
+			var ctx = container.getContext('2d');
+			var chart = new Chart(ctx, {
+				type: 'line',
+
+				// The data for our dataset
+				data: {
+					labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+					datasets: [data]
+				}
+			});	
+		}
+
+		// Error handler
+		function handleError(xhr, textStatus, errorThrown) {
+			console.error(arguments);
+		}
+
+		// Handle response
+		function handleResponse(data) {
+			chart(document.getElementById('container'), mapData(data));
+		}
+		
+		var app = angular.module('app', []);
+		app.controller('ctrl', function ($scope, $http) {
+			$scope.request = function(params) {
+				$http.get(`https://api.npmjs.org/downloads/range/${params.rangeFrom}:${params.rangeUntil}/${params.package}`).then($scope.response);
+			}
+			
+			$scope.response = function(data) {
+				handleResponse(data.data);
+			}
+
+			$scope.request({rangeFrom:'2018-01-01', rangeUntil: '2019-01-01', package: '@angular/core'})
+		});
+
+	</script>
+
+	<div ng-app="app" ng-controller="ctrl">
+	</div>
+
+</body>
+</html>

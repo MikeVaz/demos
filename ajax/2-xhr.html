@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset='utf-8'>
+	<meta http-equiv='X-UA-Compatible' content='IE=edge'>
+	<title>AJAX</title>
+	<meta name='viewport' content='width=device-width, initial-scale=1'>
+</head>
+
+<body>
+	<div id="container"></div>
+	<script>
+
+		function row(data) {
+			return data.reduce(function (html, record) {
+				html = html || '';
+				html += `<tr>`
+				return html;
+			})
+		}
+
+
+		function table(el, data) { // Reducer, Template Literal
+			el.innerHTML = `<table border="1"><th>Day</th><th>Downloads</th></tr>
+				${data.reduce(function (html, record) {
+				html = html || '';
+				html += `<tr><td>${record.day}</td><td>${record.downloads}</td></tr>`;
+				return html;
+			}, '')}
+			</table>`;
+		}
+
+		function handleResponse(event) {
+			var xhr = event.target;
+			var records = JSON.parse(xhr.response); // Handle different response types
+			table(document.getElementById('container'),records.downloads);
+		}
+
+		// Error handler
+		function handleError(event) {
+			console.log(event)
+			throw event.target.responseText;
+		}
+
+		function request(params, onSuccess, onError) {
+			var xhr = new XMLHttpRequest(); //  Web API https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest
+			xhr.onload = onSuccess;
+			xhr.onerror = onError;
+			xhr.open('GET', `https://api.npmjs.org/downloads/range/${params.rangeFrom}:${params.rangeUntil}/${params.package}`); 
+			xhr.send();
+
+			// Event-driven programming
+			xhr.addEventListener('load', function () {
+				console.log('load');
+			});
+		}
+
+		request({rangeFrom:'2018-01-01', rangeUntil: '2019-01-01', package: 'jquery'}, handleResponse, handleError);
+
+	</script>
+</body>
+
+</html>
+
+</html>
